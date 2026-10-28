@@ -22,5 +22,5 @@ export async function POST(request:Request){
    await getDb().insert(consultations).values({id:crypto.randomUUID(),name:clean.name,email:clean.email,phone:clean.phone,sport:clean.sport,message:clean.message,consentAt:now,createdAt:now});
  }
  return Response.json({ok:true},{status:201});
- }catch{return Response.json({error:'No se ha podido guardar la solicitud'},{status:500})}
+ }catch(error){console.error('contact_submission_failed', {name: error instanceof Error ? error.name : 'unknown'});return Response.json({error:'No se ha podido guardar la solicitud'},{status:500})}
 }

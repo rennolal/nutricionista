@@ -29,7 +29,7 @@ export async function handleConsultation(request, values, transport = fetch, exp
     const headers={apikey:secret,'Content-Type':'application/json',Prefer:'return=minimal'};
     if (!secret.startsWith('sb_secret_')) headers.Authorization=`Bearer ${secret}`;
     const result=await transport(`${values.SUPABASE_URL.replace(/\/$/,'')}/rest/v1/consultas`,{
-      method:'POST',headers,body:JSON.stringify(data),redirect:'error',signal:AbortSignal.timeout(10000)
+      method:'POST',headers,body:JSON.stringify(data),redirect:'manual',signal:AbortSignal.timeout(10000)
     });
     if (!result.ok) return json({error:'No se ha podido guardar la consulta'},502);
     return json({ok:true},201);

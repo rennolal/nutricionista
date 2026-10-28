@@ -21,7 +21,7 @@ test('inserts the Spanish fields, with server authentication and database-genera
   assert.equal(url,config.url+'/functions/v1/andrea-contacto');
   assert.equal(options.method,'POST');
   assert.equal(options.headers['x-form-token'],config.formToken);
-  assert.equal(options.redirect,'error');
+  assert.equal(options.redirect,'manual');
   assert.ok(options.signal instanceof AbortSignal);
   assert.deepEqual(JSON.parse(options.body),{nombre:data.name,email:data.email,telefono:data.phone,deporte:data.sport,mensaje:''});
   return new Response(null,{status:201});
@@ -31,4 +31,8 @@ test('inserts the Spanish fields, with server authentication and database-genera
 test('database rejection and network errors never produce false success',async()=>{
  await assert.rejects(saveSupabaseConsultation(config,data,async()=>new Response('private backend detail',{status:403})),error=>error.message==='Supabase did not confirm the insert');
  await assert.rejects(saveSupabaseConsultation(config,data,async()=>{throw new Error('network unavailable')}));
+});
+
+test('redirects are not followed or treated as a successful insert',async()=>{
+ await assert.rejects(saveSupabaseConsultation(config,data,async(url,options)=>{assert.equal(options.redirect,'manual');return new Response(null,{status:302,headers:{Location:'https://other.example'}})}));
 });
