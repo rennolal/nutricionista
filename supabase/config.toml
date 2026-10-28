@@ -1,0 +1,6 @@
+project_id = "nnuzvajmgnhijsryspbz"
+
+[functions.andrea-contacto]
+# The function authenticates each request with x-form-token (SHA-256 hash check).
+verify_jwt = false
+entrypoint = "./functions/andrea-contacto/index.mjs"

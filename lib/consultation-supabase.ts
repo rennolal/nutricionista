@@ -1,4 +1,4 @@
-// Imported only by the server API route. Never expose the secret key to the client.
+// Imported only by the server API route. Never expose the authentication token to the client.
 export type Consultation = {
   name: string;
   email: string;
@@ -6,24 +6,24 @@ export type Consultation = {
   sport: string;
   message: string;
 };
-export type SupabaseConfig = { url: string; secretKey: string };
+export type SupabaseConfig = { url: string; formToken: string };
 
 export function getSupabaseConfig(values: {
   SUPABASE_URL?: string;
-  SUPABASE_SECRET_KEY?: string;
+  SUPABASE_FORM_TOKEN?: string;
 }): SupabaseConfig | null {
   const url = values.SUPABASE_URL?.trim();
-  const secretKey = values.SUPABASE_SECRET_KEY?.trim();
+  const formToken = values.SUPABASE_FORM_TOKEN?.trim();
   // Temporary transition: existing D1 storage stays active until Supabase is connected.
-  if (!url && !secretKey) return null;
-  if (!url || !secretKey) throw new Error('Supabase configuration is incomplete');
+  if (!url && !formToken) return null;
+  if (!url || !formToken) throw new Error('Supabase configuration is incomplete');
   const parsed = new URL(url);
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password ||
       parsed.search || parsed.hash || !['', '/'].includes(parsed.pathname)) {
     throw new Error('Invalid Supabase project URL');
   }
-  if (!secretKey.startsWith('sb_secret_')) throw new Error('A server-side Supabase secret key is required');
-  return { url: parsed.origin, secretKey };
+  if (formToken.length < 32) throw new Error('A server-side Supabase form token is required');
+  return { url: parsed.origin, formToken };
 }
 
 export async function saveSupabaseConsultation(
@@ -31,12 +31,11 @@ export async function saveSupabaseConsultation(
   data: Consultation,
   request: typeof fetch = fetch,
 ): Promise<void> {
-  const response = await request(`${config.url}/rest/v1/consultas`, {
+  const response = await request(`${config.url}/functions/v1/andrea-contacto`, {
     method: 'POST',
     headers: {
-      apikey: config.secretKey,
+      'x-form-token': config.formToken,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
     },
     body: JSON.stringify({
       nombre: data.name,
